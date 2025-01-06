@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>website</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body id="body">
+    <header>
+        <h2 class="logo">TASKS</h2>
+        <nav class="navigation">
+           
+            <button class="btnLogin-popup">Login</button>
+
+        </nav>
+    </header>
+    <div class="wrapper">
+
+        <span class="icon-close"><ion-icon name="close-outline"></ion-icon></span>
+
+        <div class="form-box login">
+            <h2>
+                Login
+            </h2> 
+            <form id="loginForm" action="#">
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                    <input id="emaill" type="email" required>
+                    <label>Email</label>
+                </div>
+               
+                    <div class="input-box">
+                        <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                        <input id="motdpass" type="password" required>
+                        <label>Password</label>
+                    </div>
+                    <div class="remember-forgot">
+                        <label > <input type="checkbox">Remember me</label>
+                        <a href="#">Forgot password?</a>
+
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                    <div class="login-register">
+                        <p>don't have an account?<a href="#" class="register-link">Register</a></p>
+                    </div>
+                    <p id="loginResponse"></p>
+            </form>
+        </div>
+
+        <div class="form-box register">
+            <h2>
+                Registration
+            </h2> 
+            <form id="userForm" action="#">
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="person"></ion-icon></span>
+                    <input id="username" type="text" required>
+                    <label>Username</label>
+                </div>
+                <div class="input-box">
+                    <span class="icon"><ion-icon name="mail"></ion-icon></span>
+                    <input id="email" type="email" required>
+                    <label>Email</label>
+                </div>
+               
+                    <div class="input-box">
+                        <span class="icon"><ion-icon name="lock-closed"></ion-icon></span>
+                        <input id="password" type="password" required>
+                        <label>Password</label>
+                    </div>
+                    <div class="remember-forgot">
+                        <label > <input type="checkbox" required>I agree to the terms & conditions</label>
+
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                    <div class="login-register">
+                        <p>Already have an account?<a href="#" class="login-link">Login</a></p>
+                    </div>
+                    <p id="response"></p>
+
+
+            </form>
+        </div>
+
+    </div>
+
+
+
+
+
+    <script scr="script.js">
+        const wrapper = document.querySelector('.wrapper');
+const loginLink = document.querySelector('.login-link');
+const registerLink = document.querySelector('.register-link');
+const btnPopup = document.querySelector('.btnLogin-popup');
+const iconClose = document.querySelector('.icon-close');
+
+registerLink.addEventListener('click', ()=> { wrapper.classList.add('active');
+});
+
+loginLink.addEventListener('click', ()=> {wrapper.classList.remove('active');
+});
+btnPopup.addEventListener('click', ()=> { wrapper.classList.add('active-popup');
+});
+iconClose.addEventListener('click', ()=> { wrapper.classList.remove('active-popup');
+});
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+
+    // Get the email and password input values
+    const email = document.getElementById('emaill').value;
+    const password = document.getElementById('motdpass').value;
+
+    try {
+        // Send the login request to the server
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+
+        // Display the response message
+        const responseElement = document.getElementById('loginResponse');
+        responseElement.innerText = result.message;
+
+        // If login is successful, redirect to home.html
+        if (result.success) {
+            sessionStorage.setItem('loggedInUserEmail', email);
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 1000); // Redirect after 1 second
+        } else {
+            // Clear the message after 5 seconds if login fails
+            setTimeout(() => {
+                responseElement.innerText = '';
+            }, 5000);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        const responseElement = document.getElementById('loginResponse');
+        responseElement.innerText = 'invalid email or password.';
+        setTimeout(() => {
+            responseElement.innerText = '';
+        }, 5000);
+    }
+});
+
+
+document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username,email, password })
+            });
+
+            const result = await response.json();
+
+            const responseElement = document.getElementById('response');
+        responseElement.innerText = result.message;
+        setTimeout(() => {
+            responseElement.innerText = ''; 
+            
+        }, 3000);
+
+        });
+
+
+
+
+
+
+    </script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

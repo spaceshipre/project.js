@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>website</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+    
+        <header >
+            <h2 class="logo">TASKS</h2>
+            <nav class="navigation">
+                <a href="home.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="contact.html">Contact</a>
+                <button class="btnLogout-popup" onclick="window.location.href='index.html';">Logout</button>
+            </nav>
+        </header>
+        <body id="bod">
+    <div class="test" >
+       <div class="container">
+            <h1 style="color:  #162938; text-decoration: underline;">Welcome to your task manager</h1>
+           
+          
+    <form id="taskForm">
+       <div class="input-task"> <input  type="text" id="taskName" placeholder="Task Name" required />
+       </div>
+       <div class="input-task"> <input  type="date" id="dueDate" required /> </div>
+        <div class="input-task"> <input type="text" id="description" placeholder="Description" required> </div>
+        <button class="btnadd" type="submit">Add Task</button>
+    </form>
+  
+  
+</div>
+<hr style="margin-top: 30px;margin-bottom: 30px;">
+
+<div id="taskTableContainer">
+    <table id="taskTable" border="1" style="background-color: #53A2BE; width:1000px">
+      <thead>
+        <tr style="background-color: #53A2BE;">
+          <th>Name</th>
+          <th>Due Date</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tasks will be appended here -->
+      </tbody>
+    </table>
+  </div>
+  <p id="responseMessage"></p>
+</div>
+  
+  
+  
+  <script>
+
+   document.addEventListener('DOMContentLoaded', () => {
+    const taskForm = document.getElementById('taskForm');
+    const taskTable = document.getElementById('taskTable').getElementsByTagName('tbody')[0];
+    const responseMessage = document.getElementById('responseMessage');
+
+    const userEmail = sessionStorage.getItem('loggedInUserEmail'); // Set during login
+    if (!userEmail) {
+        window.location.href = 'login.html';
+    }
+
+    function showResponseMessage(message) {
+        responseMessage.textContent = message;
+        setTimeout(() => responseMessage.textContent = '', 5000);
+    }
+
+    function fetchTasks() {
+        fetch(`/tasks?email=${encodeURIComponent(userEmail)}`)
+            .then(res => res.json())
+            .then(tasks => {
+                taskTable.innerHTML = '';
+                tasks.forEach(task => {
+    const row = taskTable.insertRow();
+    row.innerHTML = `
+        <td style="background-color:#0CA4A5"><div class="input-task"><input type="text" value="${task.name}" id="name-${task.id}"></div></td>
+        <td style="background-color:#0CA4A5" ><div class="input-task"><input type="date" value="${task.dueDate}" id="dueDate-${task.id}"></div></td>
+        <td style="background-color:#0CA4A5" ><div class="input-task"><input type="text" value="${task.description}" id="description-${task.id}"></div></td>
+        <td >
+            <button class="btnedit" onclick="updateTask(${task.id})">Update</button>
+            <button class="btndelete" onclick="deleteTask(${task.id})">Delete</button>
+        </td>
+    `;
+});
+
+            });
+    }
+
+    window.updateTask = function (id) {
+    // Get the values from the input fields
+    const name = document.getElementById(`name-${id}`).value;
+    const dueDate = document.getElementById(`dueDate-${id}`).value;
+    const description = document.getElementById(`description-${id}`).value;
+
+    // Check if any of the fields are empty
+    if (!name || !dueDate || !description) {
+        showResponseMessage('All fields are required to update the task.');
+        return;  // Prevent the request from being sent if validation fails
+    }
+
+    const updatedTask = {
+        id,
+        email: userEmail,
+        name,
+        dueDate,
+        description
+    };
+
+    console.log('Updated Task Data Sent:', updatedTask);  // Log the data being sent
+
+    fetch(`/tasks/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTask),
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('Response from Server:', data);  // Log the server's response
+        showResponseMessage(data.message);  // Show the response message
+        fetchTasks();  // Reload tasks to reflect updates
+    })
+    .catch(error => {
+        console.error('Error updating task:', error);  // Catch any potential errors
+        showResponseMessage('Error updating task');  // Show error message to the user
+    });
+};
+
+
+
+
+
+    window.deleteTask = function (id) {
+        fetch(`/tasks/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: userEmail }),
+        })
+        .then(res => res.json())
+        .then(data => {
+            showResponseMessage(data.message);
+            fetchTasks();
+        });
+    };
+
+    taskForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const task = {
+            email: userEmail,
+            name: document.getElementById('taskName').value,
+            dueDate: document.getElementById('dueDate').value,
+            description: document.getElementById('description').value
+        };
+        fetch('/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(task),
+        })
+        .then(res => res.json())
+        .then(data => {
+            showResponseMessage(data.message);
+            fetchTasks();
+            taskForm.reset();
+        });
+    });
+
+    fetchTasks();
+});
+
+
+  </script>
+  
+            
+        </body>
+
+</html>
